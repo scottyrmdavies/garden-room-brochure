@@ -1,152 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Garden Room Brochure</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
+  <title>Real Paper Roll</title>
   <style>
-    body { 
-      margin: 0; 
-      background: #f2f2f2; 
-      font-family: serif; 
-      overflow: hidden;
-    }
+    body { margin:0; background:#f9f9f9; overflow:hidden; font-family:Georgia; }
 
-    #book { 
-      perspective: 1800px; 
-      width: 800px; 
-      height: 600px; 
-      position: absolute; 
-      top: 50%; 
-      left: 50%; 
-      transform: translate(-50%, -50%); 
+    #book {
+      width:800px; height:600px; margin:auto; position:relative;
+      perspective: 2000px;
+      transform-style: preserve-3d;
     }
 
     .page {
-      position: absolute;
-      width: 400px; 
-      height: 600px; 
-      background: white; 
-      box-shadow: 0 0 5px rgba(0,0,0,0.3);
-      overflow: hidden;
+      position:absolute; width:400px; height:600px; background:#fff;
+      box-shadow:0 0 8px rgba(0,0,0,0.15);
+      overflow:hidden;
+      transform-origin:0 0;
       transform-style: preserve-3d;
-      transform-origin: left center;
-      z-index: 2;
-      cursor: grab;
+      z-index:1;
+      cursor:grab;
     }
 
-    .page:after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: url('https://i.imgur.com/5x3x3x3.png'); /* paper texture */
-      opacity: 0.15;
-      pointer-events: none;
+    .page .front, .page .back {
+      position:absolute; width:100%; height:100%;
+      background-size:cover; background-position:center;
     }
 
-    .content {
-      padding: 40px;
-      font-size: 18px;
-      line-height: 1.7;
-      text-align: justify;
-    }
+    .page .front { z-index:2; }
+    .page .back  { z-index:1; transform:rotateY(180deg); }
 
-    #finger-cue {
-      position: absolute;
-      bottom: 60px;
-      right: 40px;
-      font-size: 60px;
-      opacity: 0.6;
-      color: #555;
-      z-index: 1;
-      cursor: pointer;
-      user-select: none;
+    #cue {
+      position:absolute; bottom:30px; right:40px;
+      font-size:60px; opacity:0.5; cursor:pointer;
+      user-select:none; z-index:0;
     }
   </style>
 </head>
 <body>
-
-<div id="finger-cue">→</div>
-
+<div id="cue">→</div>
 <div id="book">
-  <div class="page" style="z-index:9">
-    <div class="content">
-      <h2>Welcome</h2>
-      <p>Turn the page to see our garden rooms...</p>
-    </div>
+  <div class="page" style="background:#fff url('page1.jpg')">
+    <div class="front">Page 1</div>
+    <div class="back">Page 2</div>
   </div>
-
-  <div class="page" style="z-index:8">
-    <div class="content">
-      <h2>Model A</h2>
-      <p>Perfect for home office or gym.</p>
-      <img src="https://via.placeholder.com/300x200?text=Garden+Room+A" style="max-width:100%">
-    </div>
-  </div>
-
-  <div class="page" style="z-index:7">
-    <div class="content">
-      <h2>Model B</h2>
-      <p>Family retreat. Insulated. Double glazed.</p>
-      <img src="https://via.placeholder.com/300x200?text=Garden+Room+B" style="max-width:100%">
-    </div>
-  </div>
-
-  <div class="page" style="z-index:6">
-    <div class="content">
-      <p>Call us: 01234 567890</p>
-      <p>Thank you for reading.</p>
-    </div>
+  <div class="page" style="background:#fff url('page3.jpg')">
+    <div class="front">Page 3</div>
+    <div class="back">Page 4</div>
   </div>
 </div>
 
 <script>
-let dragging = false;
-let startX;
-let currentPage = 0;
+let dragging = false, startX, startAngle = 0;
 
-$(document).on("mousedown touchstart", ".page", function(e) {
+$("#cue").click(function(){
+  $(this).hide();
+});
+
+$("#book").on("mousedown touchstart", ".page", function(e){
   e.preventDefault();
   dragging = true;
   startX = e.pageX || e.touches[0].pageX;
+  startAngle = parseFloat($(this).css("transform").match(/rotateY\(([^)]+)/)?.[1] || 0);
 });
 
-$(document).on("mousemove touchmove", function(e) {
-  if (!dragging) return;
-  let moveX = e.pageX || e.touches[0].pageX;
-  let diff = startX - moveX;
-  let angle = (diff * 90) / 400;
-  let page = $(".page").eq(currentPage);
-  page.css("transform", `rotateY(${-angle}deg)`);
+$(document).on("mousemove touchmove", function(e){
+  if(!dragging) return;
+  let x = e.pageX || e.touches[0].pageX;
+  let delta = (x - startX) / 4;
+
+  let angle = startAngle - delta;
+  let page = $("#book .page:first-child");
+
+  if(angle < 0 && angle > -180){
+    page.css("transform", `rotateY(${angle}deg) skewY(${angle / 12}deg)`);
+    page.find('.front').css('box-shadow', `0 10px 20px rgba(0,0,0,0.${Math.round(Math.abs(angle)/10)})`);
+  }
 });
 
-$(document).on("mouseup touchend", function() {
-  if (!dragging) return;
+$(document).on("mouseup touchend", function(){
+  if(!dragging) return;
   dragging = false;
+  let page = $("#book .page:first-child");
+  let angle = parseFloat(page.css("transform").match(/rotateY\(([^)]+)/)?.[1] || 0);
 
-  let lastAngle = $(".page").eq(currentPage).css("transform");
-  let num = parseFloat(lastAngle.match(/rotateY\((.*)deg\)/)[1]);
-
-  let page = $(".page").eq(currentPage);
-
-  if (num > -45) {
-    page.transition({ rotateY: 0 }, 300);
-  } else {
-    page.transition({ 
-      rotateY: -180 
-    }, 500, "easeInOutQuart", function() {
-      $(this).css({ 
-        zIndex: 1, 
-        transform: "rotateY(0deg)", 
-        opacity: 0 
-      });
-      currentPage++;
-      if (currentPage >= $(".page").length) currentPage = $(".page").length - 1;
-      $(".page").eq(currentPage).css({ opacity: 1, zIndex: 9 });
+  if(angle < -90){
+    page.transition({ rotateY: -180, skewY: 0 }, 800, 'easeInOutCubic', function(){
+      $(this).css({ zIndex: 1, transform: 'rotateY(0deg)' }).hide();
+      $(this).next().show();
     });
+  } else {
+    page.transition({ rotateY: 0, skewY: 0 }, 500);
   }
 });
 </script>
+
+<!-- Add jQuery + jQuery Transit -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
 
 </body>
 </html>
