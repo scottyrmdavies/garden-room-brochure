@@ -3,78 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Realistic Flipbook</title>
+    <title>Garden Room Brochure Mockup</title>
     <style>
         :root {
-            --book-height: 500px;
-            --book-width: 800px;
-            --paper-color: #fffef0;
+            --book-height: 550px;
+            --book-width: 850px;
+            --paper: #fffef0;
+            --brand-green: #2d5016;
         }
 
         body {
             margin: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             background: #1a1a1a;
             font-family: 'Georgia', serif;
+            color: #333;
         }
 
         .book-container {
             position: relative;
             width: var(--book-width);
             height: var(--book-height);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            background: #2c1810;
         }
 
         .book {
             display: flex;
             width: 100%;
             height: 100%;
-            background: #2c1810;
             position: relative;
+            overflow: hidden;
         }
 
         .side {
             width: 50%;
             height: 100%;
-            background: var(--paper-color);
+            background: var(--paper);
             position: relative;
-            overflow: hidden;
         }
 
         .page-content {
-            padding: 40px;
-            pointer-events: none;
+            padding: 50px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.3s;
         }
 
+        /* Branding Styles */
+        .cover { background: var(--brand-green); color: white; text-align: center; }
+        .cover h1 { font-size: 3rem; margin-bottom: 10px; }
+        .price { color: #4a7c2c; font-weight: bold; font-size: 1.4rem; }
+        ul { text-align: left; line-height: 1.8; }
+        
         canvas {
             position: absolute;
             top: 0;
             left: 50%;
             width: 50%;
             height: 100%;
-            z-index: 10;
+            z-index: 100;
             cursor: grab;
             touch-action: none;
         }
-
-        canvas:active { cursor: grabbing; }
-
-        h2 { color: #2c1810; border-bottom: 1px solid #d4c5a9; padding-bottom: 10px; }
-        p { color: #4a3728; line-height: 1.6; text-align: justify; }
 
         .spine {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 30px;
+            width: 2px;
             height: 100%;
-            background: linear-gradient(to right, rgba(0,0,0,0.2), rgba(0,0,0,0), rgba(0,0,0,0.2));
-            z-index: 20;
-            pointer-events: none;
+            background: rgba(0,0,0,0.2);
+            z-index: 50;
         }
+
+        .controls { color: white; margin-top: 20px; font-size: 0.9rem; opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -82,30 +93,58 @@
 <div class="book-container">
     <div class="book">
         <div class="spine"></div>
-        <div class="side left">
+        
+        <div class="side" id="left-page">
             <div class="page-content" id="left-content">
-                <h2>The Art of Brewing</h2>
-                <p>Welcome to your interactive journal. Turning these pages is as simple as grabbing the corner and pulling.</p>
-            </div>
+                </div>
         </div>
-        <div class="side right">
+
+        <div class="side" id="right-page">
             <div class="page-content" id="right-content">
-                <h2>Introduction</h2>
-                <p>Observe how the paper follows your movement. The shadows and curve are calculated in real-time to mimic physical paper.</p>
-            </div>
+                </div>
         </div>
+
         <canvas id="pageCanvas"></canvas>
     </div>
 </div>
 
+<div class="controls">Drag the right page corner to flip • Page <span id="pnum">1</span> of 4</div>
+
 <script>
     const canvas = document.getElementById('pageCanvas');
     const ctx = canvas.getContext('2d');
-    const rightContent = document.getElementById('right-content');
+    const pNumDisplay = document.getElementById('pnum');
+    
+    // Mock Content Data
+    const pages = [
+        { // Page 1 & 2 (Cover & Intro)
+            left: `<div class="cover"><h1>Garden Rooms</h1><p>2026 Collection</p><hr style="width:40px; border-color:white"></div>`,
+            right: `<h2>Your New Space</h2><p>Hand-crafted luxury garden rooms designed for year-round comfort. Whether it's an office, gym, or studio.</p>`
+        },
+        { // Page 3 & 4 (Products)
+            left: `<h3>The Classic</h3><p class="price">From £12,500</p><ul><li>3m x 3m Insulated</li><li>Double Glazing</li><li>Electrical Pack</li></ul>`,
+            right: `<h3>The Executive</h3><p class="price">From £18,900</p><ul><li>4m x 4m Premium</li><li>Bi-fold Doors</li><li>Smart Heating</li></ul>`
+        },
+        { // Page 5 & 6 (Final)
+            left: `<h3>Our Process</h3><p>1. Consultation<br>2. Design & Planning<br>3. Installation (2 weeks)</p>`,
+            right: `<h3>Get in Touch</h3><p>📞 01234 567890</p><p>hello@gardenrooms.co.uk</p><p>123 Green Lane, London</p>`
+        }
+    ];
 
+    let currentSpread = 0;
     let isDragging = false;
-    let cornerX = 0; 
+    let cornerX = 0;
     let canvasW, canvasH;
+
+    function updateContent() {
+        document.getElementById('left-content').innerHTML = pages[currentSpread].left;
+        document.getElementById('right-content').innerHTML = pages[currentSpread].right;
+        pNumDisplay.innerText = (currentSpread * 2) + 1;
+        
+        // Apply cover style specifically if it's spread 0
+        document.getElementById('left-page').style.background = currentSpread === 0 ? 'var(--brand-green)' : 'var(--paper)';
+        document.getElementById('left-page').style.color = currentSpread === 0 ? 'white' : '#333';
+    }
 
     function init() {
         canvasW = canvas.offsetWidth;
@@ -113,40 +152,29 @@
         canvas.width = canvasW;
         canvas.height = canvasH;
         cornerX = canvasW;
+        updateContent();
         draw();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvasW, canvasH);
-        
         const curlAmount = canvasW - cornerX;
         if (curlAmount <= 0) return;
 
         ctx.save();
-        
-        // 1. Draw Page Shadow (The part being revealed)
+        // The Peel Shadow
         ctx.beginPath();
         ctx.moveTo(cornerX, 0);
-        ctx.quadraticCurveTo(cornerX - (curlAmount * 0.5), canvasH/2, cornerX, canvasH);
+        ctx.quadraticCurveTo(cornerX - (curlAmount * 0.6), canvasH/2, cornerX, canvasH);
         ctx.lineTo(canvasW, canvasH);
         ctx.lineTo(canvasW, 0);
-        ctx.closePath();
         
-        const grad = ctx.createLinearGradient(cornerX, 0, canvasW, 0);
-        grad.addColorStop(0, 'rgba(0,0,0,0.3)');
-        grad.addColorStop(0.2, 'rgba(0,0,0,0.1)');
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        const grad = ctx.createLinearGradient(cornerX - (curlAmount * 0.2), 0, canvasW, 0);
+        grad.addColorStop(0, 'rgba(0,0,0,0.4)');
+        grad.addColorStop(0.3, 'rgba(0,0,0,0.1)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = grad;
         ctx.fill();
-
-        // 2. Draw the Curl "Back"
-        ctx.beginPath();
-        ctx.moveTo(cornerX, 0);
-        ctx.quadraticCurveTo(cornerX - (curlAmount * 0.8), canvasH/2, cornerX, canvasH);
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
         ctx.restore();
     }
 
@@ -154,9 +182,8 @@
         if (!isDragging) return;
         const rect = canvas.getBoundingClientRect();
         const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        
         cornerX = Math.max(0, Math.min(canvasW, x));
-        rightContent.style.opacity = cornerX / canvasW; // Fade text as we peel
+        document.getElementById('right-content').style.opacity = cornerX / canvasW;
         draw();
     }
 
@@ -167,17 +194,20 @@
     window.addEventListener('mouseup', () => {
         if (!isDragging) return;
         isDragging = false;
-        // Snap back or flip logic
-        if (cornerX < canvasW / 2) {
-            cornerX = 0; // Flip complete
-        } else {
-            cornerX = canvasW; // Snap back
+        
+        if (cornerX < canvasW / 2 && currentSpread < pages.length - 1) {
+            currentSpread++;
+            updateContent();
         }
-        rightContent.style.opacity = cornerX === 0 ? 0 : 1;
+        
+        // Reset peel
+        cornerX = canvasW;
+        document.getElementById('right-content').style.opacity = 1;
         draw();
     });
 
     window.onload = init;
+    window.onresize = init;
 </script>
 </body>
 </html>
