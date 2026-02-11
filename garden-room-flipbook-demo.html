@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garden Room Brochure - Interactive Flip Book Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .flipbook-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+        }
+
+        #flipbook {
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+        }
+
+        #flipbook .page {
+            width: 400px;
+            height: 600px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .page-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .cover {
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c2c 100%);
+            color: white;
+        }
+
+        .cover h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .cover p {
+            font-size: 20px;
+            font-style: italic;
+        }
+
+        .intro-page {
+            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+        }
+
+        .intro-page h2 {
+            color: #2d5016;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .intro-page p {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.8;
+            max-width: 300px;
+        }
+
+        .product-page {
+            background: #fff;
+            border-left: 3px solid #4a7c2c;
+        }
+
+        .product-page h3 {
+            color: #2d5016;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .product-page .price {
+            color: #4a7c2c;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .product-page ul {
+            text-align: left;
+            margin: 15px 0;
+            list-style: none;
+        }
+
+        .product-page li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .product-page li:before {
+            content: "✓ ";
+            color: #4a7c2c;
+            font-weight: bold;
+        }
+
+        .back-cover {
+            background: linear-gradient(135deg, #2d5016 0%, #1a3010 100%);
+            color: white;
+        }
+
+        .back-cover h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .back-cover p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .controls button {
+            background: #4a7c2c;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .controls button:hover {
+            background: #2d5016;
+        }
+
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .instructions {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            #flipbook {
+                width: 600px;
+                height: 450px;
+            }
+            
+            #flipbook .page {
+                width: 300px;
+                height: 450px;
+                padding: 30px;
+            }
+            
+            .cover h1 {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 650px) {
+            #flipbook {
+                width: 400px;
+                height: 300px;
+            }
+            
+            #flipbook .page {
+                width: 200px;
+                height: 300px;
+                padding: 20px;
+            }
+            
+            .cover h1 {
+                font-size: 24px;
+            }
+            
+            .cover p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-badge">DEMO VERSION - Your actual brochure will replace this content</div>
+    
+    <div class="flipbook-container">
+        <div id="flipbook">
+            <!-- Cover Page -->
+            <div class="page cover">
+                <div class="page-content">
+                    <h1>Garden Rooms</h1>
+                    <p>Transform Your Outdoor Space</p>
+                    <p style="margin-top: 20px; font-size: 16px;">2025 Collection</p>
+                </div>
+            </div>
+
+            <!-- Page 2 - Introduction -->
+            <div class="page intro-page">
+                <div class="page-content">
+                    <h2>Welcome</h2>
+                    <p>Discover our premium range of garden rooms, expertly crafted to extend your living space and bring you closer to nature.</p>
+                    <p style="margin-top: 20px;">Each room is built with quality materials and designed for year-round comfort.</p>
+                </div>
+            </div>
+
+            <!-- Page 3 - The Classic -->
+            <div class="page product-page">
+                <div class="page-content">
+                    <h3>The Classic</h3>
+                    <p class="price">From £12,500</p>
+                    <ul>
+                        <li>3m x 3m standard size</li>
+                        <li>Insulated walls & roof</li>
+                        <li>Double glazed windows</li>
+                        <li>Composite decking</li>
+                        <li>Electrical installation</li>
+                        <li>10-year guarantee</li>
+                    </ul>
+                    <p style="margin-top: 20px; font-style: italic; color: #666;">Perfect for home offices</p>
+                </div>
+            </div>
+
+            <!-- Page 4 - The Executive -->
+            <div class="page product-page">
+                <div class="page-content">
+                    <h3>The Executive</h3>
+                    <p class="price">From £18,900</p>
+                    <ul>
+                        <li>4m x 4m generous space</li>
+                        <li>Premium insulation</li>
+                        <li>Bi-fold doors</li>
+                        <li>Engineered oak flooring</li>
+                        <li>Smart heating system</li>
+                        <li>Interior lighting package</li>
+                    </ul>
+                    <p style="margin-top: 20px; font-style: italic; color: #666;">Luxury meets functionality</p>
+                </div>
+            </div>
+
+            <!-- Page 5 - The Studio -->
+            <div class="page product-page">
+                <div class="page-content">
+                    <h3>The Studio</h3>
+                    <p class="price">From £22,500</p>
+                    <ul>
+                        <li>5m x 3.5m open plan</li>
+                        <li>Full glazed frontage</li>
+                        <li>Kitchen prep area</li>
+                        <li>Separate WC option</li>
+                        <li>Underfloor heating</li>
+                        <li>Sky windows for natural light</li>
+                    </ul>
+                    <p style="margin-top: 20px; font-style: italic; color: #666;">Your creative sanctuary</p>
+                </div>
+            </div>
+
+            <!-- Page 6 - Customization -->
+            <div class="page intro-page">
+                <div class="page-content">
+                    <h2>Custom Options</h2>
+                    <p>Every garden room can be tailored to your exact requirements.</p>
+                    <p style="margin-top: 15px;">• Custom sizes available<br>• Choice of cladding colours<br>• Interior finishes<br>• Smart home integration<br>• Air conditioning<br>• Storage solutions</p>
+                </div>
+            </div>
+
+            <!-- Page 7 - Process -->
+            <div class="page intro-page">
+                <div class="page-content">
+                    <h2>Our Process</h2>
+                    <p><strong>1. Consultation</strong><br>Free site visit and design</p>
+                    <p style="margin-top: 10px;"><strong>2. Planning</strong><br>We handle permissions</p>
+                    <p style="margin-top: 10px;"><strong>3. Installation</strong><br>Built in 2-3 weeks</p>
+                    <p style="margin-top: 10px;"><strong>4. Handover</strong><br>Ready to enjoy!</p>
+                </div>
+            </div>
+
+            <!-- Back Cover -->
+            <div class="page back-cover">
+                <div class="page-content">
+                    <h3>Ready to Transform Your Garden?</h3>
+                    <p>📞 01234 567890</p>
+                    <p>✉️ hello@gardenrooms.co.uk</p>
+                    <p>🌐 www.gardenrooms.co.uk</p>
+                    <p style="margin-top: 30px; font-size: 14px;">Visit our showroom:<br>Garden Rooms Ltd<br>123 Green Lane<br>London, SW1 1AA</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="prev-btn">← Previous</button>
+            <span class="page-indicator">Page <span id="current-page">1</span> of <span id="total-pages">8</span></span>
+            <button id="next-btn">Next →</button>
+        </div>
+    </div>
+
+    <div class="instructions">
+        💡 Click and drag pages to flip • Use arrow buttons • Click page corners
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize the flipbook
+            $('#flipbook').turn({
+                width: 800,
+                height: 600,
+                autoCenter: true,
+                duration: 1000,
+                gradients: true,
+                elevation: 50,
+                pages: 8
+            });
+
+            // Update page indicator
+            function updatePageIndicator() {
+                var page = $('#flipbook').turn('page');
+                var pages = $('#flipbook').turn('pages');
+                $('#current-page').text(page);
+                
+                // Disable/enable buttons
+                $('#prev-btn').prop('disabled', page === 1);
+                $('#next-btn').prop('disabled', page === pages);
+            }
+
+            // Button controls
+            $('#prev-btn').click(function() {
+                $('#flipbook').turn('previous');
+            });
+
+            $('#next-btn').click(function() {
+                $('#flipbook').turn('next');
+            });
+
+            // Update indicator on page turn
+            $('#flipbook').bind('turning', function(event, page, view) {
+                updatePageIndicator();
+            });
+
+            // Keyboard navigation
+            $(document).keydown(function(e) {
+                if (e.keyCode == 37) { // Left arrow
+                    $('#flipbook').turn('previous');
+                } else if (e.keyCode == 39) { // Right arrow
+                    $('#flipbook').turn('next');
+                }
+            });
+
+            // Initial update
+            updatePageIndicator();
+
+            // Responsive handling
+            $(window).resize(function() {
+                var width = $(window).width();
+                var flipbookWidth, flipbookHeight;
+                
+                if (width < 650) {
+                    flipbookWidth = 400;
+                    flipbookHeight = 300;
+                } else if (width < 900) {
+                    flipbookWidth = 600;
+                    flipbookHeight = 450;
+                } else {
+                    flipbookWidth = 800;
+                    flipbookHeight = 600;
+                }
+                
+                $('#flipbook').turn('size', flipbookWidth, flipbookHeight);
+            });
+        });
+    </script>
+</body>
+</html>
