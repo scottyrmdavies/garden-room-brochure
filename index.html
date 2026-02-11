@@ -1,213 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garden Room Brochure Mockup</title>
-    <style>
-        :root {
-            --book-height: 550px;
-            --book-width: 850px;
-            --paper: #fffef0;
-            --brand-green: #2d5016;
-        }
+  <title>Garden Room Brochure</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
+  <style>
+    body { 
+      margin: 0; 
+      background: #f2f2f2; 
+      font-family: serif; 
+      overflow: hidden;
+    }
 
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #1a1a1a;
-            font-family: 'Georgia', serif;
-            color: #333;
-        }
+    #book { 
+      perspective: 1800px; 
+      width: 800px; 
+      height: 600px; 
+      position: absolute; 
+      top: 50%; 
+      left: 50%; 
+      transform: translate(-50%, -50%); 
+    }
 
-        .book-container {
-            position: relative;
-            width: var(--book-width);
-            height: var(--book-height);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            background: #2c1810;
-        }
+    .page {
+      position: absolute;
+      width: 400px; 
+      height: 600px; 
+      background: white; 
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transform-origin: left center;
+      z-index: 2;
+      cursor: grab;
+    }
 
-        .book {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
+    .page:after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: url('https://i.imgur.com/5x3x3x3.png'); /* paper texture */
+      opacity: 0.15;
+      pointer-events: none;
+    }
 
-        .side {
-            width: 50%;
-            height: 100%;
-            background: var(--paper);
-            position: relative;
-        }
+    .content {
+      padding: 40px;
+      font-size: 18px;
+      line-height: 1.7;
+      text-align: justify;
+    }
 
-        .page-content {
-            padding: 50px;
-            height: 100%;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            opacity: 1;
-            transition: opacity 0.3s;
-        }
-
-        /* Branding Styles */
-        .cover { background: var(--brand-green); color: white; text-align: center; }
-        .cover h1 { font-size: 3rem; margin-bottom: 10px; }
-        .price { color: #4a7c2c; font-weight: bold; font-size: 1.4rem; }
-        ul { text-align: left; line-height: 1.8; }
-        
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 50%;
-            height: 100%;
-            z-index: 100;
-            cursor: grab;
-            touch-action: none;
-        }
-
-        .spine {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background: rgba(0,0,0,0.2);
-            z-index: 50;
-        }
-
-        .controls { color: white; margin-top: 20px; font-size: 0.9rem; opacity: 0.6; }
-    </style>
+    #finger-cue {
+      position: absolute;
+      bottom: 60px;
+      right: 40px;
+      font-size: 60px;
+      opacity: 0.6;
+      color: #555;
+      z-index: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
 </head>
 <body>
 
-<div class="book-container">
-    <div class="book">
-        <div class="spine"></div>
-        
-        <div class="side" id="left-page">
-            <div class="page-content" id="left-content">
-                </div>
-        </div>
+<div id="finger-cue">→</div>
 
-        <div class="side" id="right-page">
-            <div class="page-content" id="right-content">
-                </div>
-        </div>
-
-        <canvas id="pageCanvas"></canvas>
+<div id="book">
+  <div class="page" style="z-index:9">
+    <div class="content">
+      <h2>Welcome</h2>
+      <p>Turn the page to see our garden rooms...</p>
     </div>
+  </div>
+
+  <div class="page" style="z-index:8">
+    <div class="content">
+      <h2>Model A</h2>
+      <p>Perfect for home office or gym.</p>
+      <img src="https://via.placeholder.com/300x200?text=Garden+Room+A" style="max-width:100%">
+    </div>
+  </div>
+
+  <div class="page" style="z-index:7">
+    <div class="content">
+      <h2>Model B</h2>
+      <p>Family retreat. Insulated. Double glazed.</p>
+      <img src="https://via.placeholder.com/300x200?text=Garden+Room+B" style="max-width:100%">
+    </div>
+  </div>
+
+  <div class="page" style="z-index:6">
+    <div class="content">
+      <p>Call us: 01234 567890</p>
+      <p>Thank you for reading.</p>
+    </div>
+  </div>
 </div>
 
-<div class="controls">Drag the right page corner to flip • Page <span id="pnum">1</span> of 4</div>
-
 <script>
-    const canvas = document.getElementById('pageCanvas');
-    const ctx = canvas.getContext('2d');
-    const pNumDisplay = document.getElementById('pnum');
-    
-    // Mock Content Data
-    const pages = [
-        { // Page 1 & 2 (Cover & Intro)
-            left: `<div class="cover"><h1>Garden Rooms</h1><p>2026 Collection</p><hr style="width:40px; border-color:white"></div>`,
-            right: `<h2>Your New Space</h2><p>Hand-crafted luxury garden rooms designed for year-round comfort. Whether it's an office, gym, or studio.</p>`
-        },
-        { // Page 3 & 4 (Products)
-            left: `<h3>The Classic</h3><p class="price">From £12,500</p><ul><li>3m x 3m Insulated</li><li>Double Glazing</li><li>Electrical Pack</li></ul>`,
-            right: `<h3>The Executive</h3><p class="price">From £18,900</p><ul><li>4m x 4m Premium</li><li>Bi-fold Doors</li><li>Smart Heating</li></ul>`
-        },
-        { // Page 5 & 6 (Final)
-            left: `<h3>Our Process</h3><p>1. Consultation<br>2. Design & Planning<br>3. Installation (2 weeks)</p>`,
-            right: `<h3>Get in Touch</h3><p>📞 01234 567890</p><p>hello@gardenrooms.co.uk</p><p>123 Green Lane, London</p>`
-        }
-    ];
+let dragging = false;
+let startX;
+let currentPage = 0;
 
-    let currentSpread = 0;
-    let isDragging = false;
-    let cornerX = 0;
-    let canvasW, canvasH;
+$(document).on("mousedown touchstart", ".page", function(e) {
+  e.preventDefault();
+  dragging = true;
+  startX = e.pageX || e.touches[0].pageX;
+});
 
-    function updateContent() {
-        document.getElementById('left-content').innerHTML = pages[currentSpread].left;
-        document.getElementById('right-content').innerHTML = pages[currentSpread].right;
-        pNumDisplay.innerText = (currentSpread * 2) + 1;
-        
-        // Apply cover style specifically if it's spread 0
-        document.getElementById('left-page').style.background = currentSpread === 0 ? 'var(--brand-green)' : 'var(--paper)';
-        document.getElementById('left-page').style.color = currentSpread === 0 ? 'white' : '#333';
-    }
+$(document).on("mousemove touchmove", function(e) {
+  if (!dragging) return;
+  let moveX = e.pageX || e.touches[0].pageX;
+  let diff = startX - moveX;
+  let angle = (diff * 90) / 400;
+  let page = $(".page").eq(currentPage);
+  page.css("transform", `rotateY(${-angle}deg)`);
+});
 
-    function init() {
-        canvasW = canvas.offsetWidth;
-        canvasH = canvas.offsetHeight;
-        canvas.width = canvasW;
-        canvas.height = canvasH;
-        cornerX = canvasW;
-        updateContent();
-        draw();
-    }
+$(document).on("mouseup touchend", function() {
+  if (!dragging) return;
+  dragging = false;
 
-    function draw() {
-        ctx.clearRect(0, 0, canvasW, canvasH);
-        const curlAmount = canvasW - cornerX;
-        if (curlAmount <= 0) return;
+  let lastAngle = $(".page").eq(currentPage).css("transform");
+  let num = parseFloat(lastAngle.match(/rotateY\((.*)deg\)/)[1]);
 
-        ctx.save();
-        // The Peel Shadow
-        ctx.beginPath();
-        ctx.moveTo(cornerX, 0);
-        ctx.quadraticCurveTo(cornerX - (curlAmount * 0.6), canvasH/2, cornerX, canvasH);
-        ctx.lineTo(canvasW, canvasH);
-        ctx.lineTo(canvasW, 0);
-        
-        const grad = ctx.createLinearGradient(cornerX - (curlAmount * 0.2), 0, canvasW, 0);
-        grad.addColorStop(0, 'rgba(0,0,0,0.4)');
-        grad.addColorStop(0.3, 'rgba(0,0,0,0.1)');
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.restore();
-    }
+  let page = $(".page").eq(currentPage);
 
-    function handleMove(e) {
-        if (!isDragging) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        cornerX = Math.max(0, Math.min(canvasW, x));
-        document.getElementById('right-content').style.opacity = cornerX / canvasW;
-        draw();
-    }
-
-    canvas.addEventListener('mousedown', () => isDragging = true);
-    canvas.addEventListener('touchstart', () => isDragging = true);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('touchmove', handleMove);
-    window.addEventListener('mouseup', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        
-        if (cornerX < canvasW / 2 && currentSpread < pages.length - 1) {
-            currentSpread++;
-            updateContent();
-        }
-        
-        // Reset peel
-        cornerX = canvasW;
-        document.getElementById('right-content').style.opacity = 1;
-        draw();
+  if (num > -45) {
+    page.transition({ rotateY: 0 }, 300);
+  } else {
+    page.transition({ 
+      rotateY: -180 
+    }, 500, "easeInOutQuart", function() {
+      $(this).css({ 
+        zIndex: 1, 
+        transform: "rotateY(0deg)", 
+        opacity: 0 
+      });
+      currentPage++;
+      if (currentPage >= $(".page").length) currentPage = $(".page").length - 1;
+      $(".page").eq(currentPage).css({ opacity: 1, zIndex: 9 });
     });
-
-    window.onload = init;
-    window.onresize = init;
+  }
+});
 </script>
+
 </body>
 </html>
