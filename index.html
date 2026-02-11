@@ -1,63 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Garden Rooms - Real Curl</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Garden Rooms Brochure</title>
+  <link rel="stylesheet" href="https://unpkg.com/@stpageflip/core@1.0.25/dist/st-page-flip.min.css">
+  <script src="https://unpkg.com/@stpageflip/core@1.0.25/dist/st-page-flip.min.js"></script>
   <style>
-    body { margin:0; background:#f5f5f5; font-family:sans-serif; overflow:hidden; }
-    #book { 
-      width:800px; height:600px; margin:50px auto; 
-      background:#fff; box-shadow:0 20px 40px rgba(0,0,0,0.2);
-    }
-    .page { background:#fff; width:400px; height:600px; overflow:hidden; box-shadow:0 0 0 rgba(0,0,0,0); transition: box-shadow 0.6s ease; }
-    .page.turning { box-shadow: 10px 10px 25px rgba(0,0,0,0.3); }
-    #cue { position:absolute; bottom:40px; right:60px; font-size:60px; color:#aaa; cursor:pointer; text-shadow:0 0 5px rgba(0,0,0,0.2); }
+    body { margin:0; padding:0; background:#f8f8f8; font-family:Georgia,serif; overflow:hidden; }
+    #flipbook { width:100%; max-width:800px; height:100vh; max-height:600px; margin:20px auto; box-shadow:0 10px 30px rgba(0,0,0,0.15); }
+    .page { background:#fff; }
+    .page-content { padding:40px; font-size:18px; line-height:1.6; text-align:center; }
+    .cue { position:absolute; bottom:20px; right:20px; font-size:50px; color:#777; opacity:0.6; pointer-events:none; }
   </style>
 </head>
 <body>
-<div id="cue">→</div>
-<div id="book">
-  <div class="page"><img src="https://via.placeholder.com/400x600/FFFFFF/000000?text=Page+1" style="width:100%"></div>
-  <div class="page"><img src="https://via.placeholder.com/400x600/FFFFFF/000000?text=Page+2" style="width:100%"></div>
-  <div class="page"><img src="https://via.placeholder.com/400x600/FFFFFF/000000?text=Page+3" style="width:100%"></div>
-  <div class="page"><img src="https://via.placeholder.com/400x600/FFFFFF/000000?text=Page+4" style="width:100%"></div>
-</div>
+  <div class="cue">→ drag corner</div>
+  <div id="flipbook"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const flip = new StPageFlip(document.getElementById('flipbook'), {
+        width: 400,
+        height: 600,
+        size: 'stretch',
+        drawShadow: true,
+        maxShadowOpacity: 0.6,
+        showPageCorners: true,
+        flippingTime: 1200,
+        usePortrait: true,
+        startZIndex: 0,
+        autoSize: true,
+        mobileScrollSupport: false
+      });
 
-<script>
-$("#book").turn({
-  width: 800,
-  height: 600,
-  duration: 1200,
-  acceleration: true,
-  elevation: 80,
-  gradients: true,
-  display: 'double',
-  when: {
-    turning: function(e, page, view) {
-      $("#cue").fadeOut(300);
-      $('.page').addClass('turning');
-      setTimeout(() => $('.page').removeClass('turning'), 600);
-    },
-    turned: function(e, page, view) {
-      if (page == $('.page').length) {
-        $("#cue").fadeIn(300).html('←');
-      }
-    }
-  }
-});
+      flip.loadFromHTML([
+        '<div class="page"><div class="page-content"><h1>Welcome</h1><p>Our garden rooms – real quality.</p><img src="https://via.placeholder.com/320x240/ffffff/000000?text=Room+1" style="max-width:100%;margin:20px 0;"></div></div>',
+        '<div class="page"><div class="page-content"><h1>Model A</h1><p>Office / gym. Insulated. Lights.</p><img src="https://via.placeholder.com/320x240/ffffff/000000?text=Model+A" style="max-width:100%;margin:20px 0;"></div></div>',
+        '<div class="page"><div class="page-content"><h1>Model B</h1><p>Family retreat. Double glazed.</p><img src="https://via.placeholder.com/320x240/ffffff/000000?text=Model+B" style="max-width:100%;margin:20px 0;"></div></div>',
+        '<div class="page"><div class="page-content"><h1>Contact</h1><p>01234 567890<br>sales@gardenrooms.co.uk</p></div></div>'
+      ]);
 
-$("#cue").click(function(){
-  let $book = $("#book");
-  let total = $book.turn('pages');
-  let current = $book.turn('page');
-
-  if (current < total) {
-    $book.turn("next");
-  } else {
-    $book.turn("previous");
-  }
-});
-</script>
+      flip.turnToPage(0);
+    });
+  </script>
 </body>
 </html>
