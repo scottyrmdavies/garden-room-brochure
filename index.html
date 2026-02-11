@@ -2,45 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Garden Rooms Brochure</title>
-  <link rel="stylesheet" href="https://unpkg.com/@stpageflip/core@1.0.25/dist/st-page-flip.min.css">
-  <script src="https://unpkg.com/@stpageflip/core@1.0.25/dist/st-page-flip.min.js"></script>
+  <title>Garden Rooms - Real Curl</title>
+  <script src="https://unpkg.com/page-flip@2.0.7/dist/page-flip.browser.js"></script>
   <style>
-    body { margin:0; padding:0; background:#f8f8f8; font-family:Georgia,serif; overflow:hidden; }
-    #flipbook { width:100%; max-width:800px; height:100vh; max-height:600px; margin:20px auto; box-shadow:0 10px 30px rgba(0,0,0,0.15); }
-    .page { background:#fff; }
-    .page-content { padding:40px; font-size:18px; line-height:1.6; text-align:center; }
-    .cue { position:absolute; bottom:20px; right:20px; font-size:50px; color:#777; opacity:0.6; pointer-events:none; }
+    body { margin:0; background:#f8f8f8; overflow:hidden; font-family:Georgia; }
+    #book { width:800px; height:600px; margin:40px auto; border:1px solid #ddd; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
+    .page { width:100%; height:100%; background:#fff; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:40px; box-sizing:border-box; font-size:18px; }
+    .cue { position:absolute; bottom:40px; right:40px; font-size:60px; color:#888; opacity:0.6; pointer-events:none; }
   </style>
 </head>
 <body>
-  <div class="cue">→ drag corner</div>
-  <div id="flipbook"></div>
+  <div class="cue">→ drag</div>
+  <div id="book"></div>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const flip = new StPageFlip(document.getElementById('flipbook'), {
-        width: 400,
-        height: 600,
-        size: 'stretch',
-        drawShadow: true,
-        maxShadowOpacity: 0.6,
-        showPageCorners: true,
-        flippingTime: 1200,
-        usePortrait: true,
-        startZIndex: 0,
-        autoSize: true,
-        mobileScrollSupport: false
-      });
-
-      flip.loadFromHTML([
-        '<div class="page"><div class="page-content"><h1>Welcome</h1><p>Our garden rooms – real quality.</p><img src="https://via.placeholder.com/320x240/ffffff/000000?text=Room+1" style="max-width:100%;margin:20px 0;"></div></div>',
-        '<div class="page"><div class="page-content"><h1>Model A</h1><p>Office / gym. Insulated. Lights.</p><img src="https://via.placeholder.com/320x240/ffffff/000000?text=Model+A" style="max-width:100%;margin:20px 0;"></div></div>',
-        '<div class="page"><div class="page-content"><h1>Model B</h1><p>Family retreat. Double glazed.</p><img src="https://via.placeholder.com/320x240/ffffff/000000?text=Model+B" style="max-width:100%;margin:20px 0;"></div></div>',
-        '<div class="page"><div class="page-content"><h1>Contact</h1><p>01234 567890<br>sales@gardenrooms.co.uk</p></div></div>'
-      ]);
-
-      flip.turnToPage(0);
+    const pageFlip = new St.PageFlip(document.getElementById('book'), {
+      width: 400,
+      height: 600,
+      size: 'fixed',
+      drawShadow: true,
+      flippingTime: 1200,
+      maxShadowOpacity: 0.6,
+      showPageCorners: true
     });
+
+    pageFlip.loadFromHTML([
+      '<div class="page"><h1>Welcome</h1><p>Turn to see our garden rooms.</p><img src="https://via.placeholder.com/320x240?text=Room+1" style="max-width:100%;"></div>',
+      '<div class="page"><h1>Model A</h1><p>Office/gym. Insulated. Lights.</p><img src="https://via.placeholder.com/320x240?text=Model+A" style="max-width:100%;"></div>',
+      '<div class="page"><h1>Model B</h1><p>Family space. Double glazed.</p><img src="https://via.placeholder.com/320x240?text=Model+B" style="max-width:100%;"></div>',
+      '<div class="page"><h1>Contact</h1><p>01234 567890<br>sales@gardenrooms.co.uk</p></div>'
+    ]);
   </script>
 </body>
 </html>
