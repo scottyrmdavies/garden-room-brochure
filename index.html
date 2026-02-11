@@ -1,102 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Real Paper Roll</title>
+  <title>Garden Rooms - Real Curl</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
   <style>
-    body { margin:0; background:#f9f9f9; overflow:hidden; font-family:Georgia; }
-
-    #book {
-      width:800px; height:600px; margin:auto; position:relative;
-      perspective: 2000px;
-      transform-style: preserve-3d;
+    body { margin:0; background:#f5f5f5; font-family:sans-serif; overflow:hidden; }
+    
+    #book { 
+      width:800px; height:600px; margin:50px auto; 
+      background:#fff; box-shadow:0 20px 40px rgba(0,0,0,0.2);
     }
 
     .page {
-      position:absolute; width:400px; height:600px; background:#fff;
-      box-shadow:0 0 8px rgba(0,0,0,0.15);
+      background:#fff;
+      width:400px;
+      height:600px;
       overflow:hidden;
-      transform-origin:0 0;
-      transform-style: preserve-3d;
-      z-index:1;
-      cursor:grab;
+      box-shadow:0 0 0 rgba(0,0,0,0);
+      transition: box-shadow 0.6s ease;
     }
 
-    .page .front, .page .back {
-      position:absolute; width:100%; height:100%;
-      background-size:cover; background-position:center;
+    .page.turning {
+      box-shadow: 10px 10px 25px rgba(0,0,0,0.3);
     }
-
-    .page .front { z-index:2; }
-    .page .back  { z-index:1; transform:rotateY(180deg); }
 
     #cue {
-      position:absolute; bottom:30px; right:40px;
-      font-size:60px; opacity:0.5; cursor:pointer;
-      user-select:none; z-index:0;
+      position:absolute; bottom:40px; right:60px;
+      font-size:60px; color:#aaa; cursor:pointer;
+      text-shadow:0 0 5px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
 <div id="cue">→</div>
+
 <div id="book">
-  <div class="page" style="background:#fff url('page1.jpg')">
-    <div class="front">Page 1</div>
-    <div class="back">Page 2</div>
-  </div>
-  <div class="page" style="background:#fff url('page3.jpg')">
-    <div class="front">Page 3</div>
-    <div class="back">Page 4</div>
-  </div>
+  <div class="page"><img src="page1.jpg" style="width:100%"></div>
+  <div class="page"><img src="page2.jpg" style="width:100%"></div>
+  <div class="page"><img src="page3.jpg" style="width:100%"></div>
+  <div class="page"><img src="page4.jpg" style="width:100%"></div>
 </div>
 
 <script>
-let dragging = false, startX, startAngle = 0;
-
-$("#cue").click(function(){
-  $(this).hide();
-});
-
-$("#book").on("mousedown touchstart", ".page", function(e){
-  e.preventDefault();
-  dragging = true;
-  startX = e.pageX || e.touches[0].pageX;
-  startAngle = parseFloat($(this).css("transform").match(/rotateY\(([^)]+)/)?.[1] || 0);
-});
-
-$(document).on("mousemove touchmove", function(e){
-  if(!dragging) return;
-  let x = e.pageX || e.touches[0].pageX;
-  let delta = (x - startX) / 4;
-
-  let angle = startAngle - delta;
-  let page = $("#book .page:first-child");
-
-  if(angle < 0 && angle > -180){
-    page.css("transform", `rotateY(${angle}deg) skewY(${angle / 12}deg)`);
-    page.find('.front').css('box-shadow', `0 10px 20px rgba(0,0,0,0.${Math.round(Math.abs(angle)/10)})`);
+$("#book").turn({
+  width: 800,
+  height: 600,
+  duration: 1200,
+  acceleration: true,
+  elevation: 80,
+  gradients: true,
+  display: 'double',
+  when: {
+    turning: function(e, page, view) {
+      $("#cue").fadeOut(300);
+      $('.page').addClass('turning');
+      setTimeout(() => $('.page').removeClass('turning'), 600);
+    },
+    turned: function(e, page, view) {
+      if (page == $('.page').length) {
+        $("#cue").fadeIn(300).html('←');
+      }
+    }
   }
 });
 
-$(document).on("mouseup touchend", function(){
-  if(!dragging) return;
-  dragging = false;
-  let page = $("#book .page:first-child");
-  let angle = parseFloat(page.css("transform").match(/rotateY\(([^)]+)/)?.[1] || 0);
+$("#cue").click(function(){
+  let $book = $("#book");
+  let total = $book.turn('pages');
+  let current = $book.turn('page');
 
-  if(angle < -90){
-    page.transition({ rotateY: -180, skewY: 0 }, 800, 'easeInOutCubic', function(){
-      $(this).css({ zIndex: 1, transform: 'rotateY(0deg)' }).hide();
-      $(this).next().show();
-    });
+  if (current < total) {
+    $book.turn("next");
   } else {
-    page.transition({ rotateY: 0, skewY: 0 }, 500);
+    $book.turn("previous");
   }
 });
 </script>
-
-<!-- Add jQuery + jQuery Transit -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
-
 </body>
 </html>
