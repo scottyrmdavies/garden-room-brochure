@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garden Room Brochure Mockup</title>
+    <title>Garden Room Brochure - Corner Peel Demo</title>
     <style>
         :root {
-            --book-height: 550px;
-            --book-width: 850px;
+            --book-height: 500px;
+            --book-width: 800px;
             --paper: #fffef0;
             --brand-green: #2d5016;
         }
@@ -19,16 +19,15 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #1a1a1a;
+            background: #121212;
             font-family: 'Georgia', serif;
-            color: #333;
         }
 
         .book-container {
             position: relative;
             width: var(--book-width);
             height: var(--book-height);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.9);
             background: #2c1810;
         }
 
@@ -45,29 +44,27 @@
             height: 100%;
             background: var(--paper);
             position: relative;
+            transition: background 0.4s ease;
         }
 
         .page-content {
-            padding: 50px;
+            padding: 40px;
             height: 100%;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            opacity: 1;
-            transition: opacity 0.3s;
         }
 
-        /* Branding Styles */
-        .cover { background: var(--brand-green); color: white; text-align: center; }
-        .cover h1 { font-size: 3rem; margin-bottom: 10px; }
-        .price { color: #4a7c2c; font-weight: bold; font-size: 1.4rem; }
-        ul { text-align: left; line-height: 1.8; }
+        /* Mock Content Styling */
+        .cover { background: var(--brand-green); color: white; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;}
+        .cover h1 { font-size: 2.5rem; margin-bottom: 0; }
+        .price { color: #4a7c2c; font-weight: bold; font-size: 1.2rem; margin: 10px 0; }
         
         canvas {
             position: absolute;
             top: 0;
-            left: 50%;
+            left: 50%; /* Only active on the right page area */
             width: 50%;
             height: 100%;
             z-index: 100;
@@ -79,13 +76,14 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 2px;
+            width: 6px;
             height: 100%;
-            background: rgba(0,0,0,0.2);
+            background: linear-gradient(to right, rgba(0,0,0,0.3), transparent, rgba(0,0,0,0.3));
             z-index: 50;
         }
 
-        .controls { color: white; margin-top: 20px; font-size: 0.9rem; opacity: 0.6; }
+        .hint { color: #666; margin-top: 20px; font-size: 0.85rem; letter-spacing: 1px; }
+        b { color: #aaa; }
     </style>
 </head>
 <body>
@@ -95,55 +93,51 @@
         <div class="spine"></div>
         
         <div class="side" id="left-page">
-            <div class="page-content" id="left-content">
-                </div>
+            <div class="page-content" id="left-content"></div>
         </div>
 
         <div class="side" id="right-page">
-            <div class="page-content" id="right-content">
-                </div>
+            <div class="page-content" id="right-content"></div>
         </div>
 
         <canvas id="pageCanvas"></canvas>
     </div>
 </div>
 
-<div class="controls">Drag the right page corner to flip • Page <span id="pnum">1</span> of 4</div>
+<div class="hint">GRAB THE <b>BOTTOM-RIGHT CORNER</b> TO PEEL • SPREAD <span id="pnum">1</span>/2</div>
 
 <script>
     const canvas = document.getElementById('pageCanvas');
     const ctx = canvas.getContext('2d');
     const pNumDisplay = document.getElementById('pnum');
     
-    // Mock Content Data
-    const pages = [
-        { // Page 1 & 2 (Cover & Intro)
-            left: `<div class="cover"><h1>Garden Rooms</h1><p>2026 Collection</p><hr style="width:40px; border-color:white"></div>`,
-            right: `<h2>Your New Space</h2><p>Hand-crafted luxury garden rooms designed for year-round comfort. Whether it's an office, gym, or studio.</p>`
+    // Spread Data
+    const spreads = [
+        { 
+            left: `<div class="cover"><h1>Garden Rooms</h1><p>2026 Collection</p></div>`,
+            right: `<h2>Premium Outdoor Living</h2><p>Designed for year-round comfort and built with sustainable materials.</p><p style="font-style:italic">Grab the corner below to flip to our products.</p>`
         },
-        { // Page 3 & 4 (Products)
-            left: `<h3>The Classic</h3><p class="price">From £12,500</p><ul><li>3m x 3m Insulated</li><li>Double Glazing</li><li>Electrical Pack</li></ul>`,
-            right: `<h3>The Executive</h3><p class="price">From £18,900</p><ul><li>4m x 4m Premium</li><li>Bi-fold Doors</li><li>Smart Heating</li></ul>`
-        },
-        { // Page 5 & 6 (Final)
-            left: `<h3>Our Process</h3><p>1. Consultation<br>2. Design & Planning<br>3. Installation (2 weeks)</p>`,
-            right: `<h3>Get in Touch</h3><p>📞 01234 567890</p><p>hello@gardenrooms.co.uk</p><p>123 Green Lane, London</p>`
+        { 
+            left: `<h3>The Executive</h3><p class="price">From £18,900</p><p>Our most popular model featuring bi-fold doors and smart climate control.</p>`,
+            right: `<h3>Get In Touch</h3><p>Ready to start your project?</p><p>📞 01234 567890<br>✉️ hello@gardenrooms.co.uk</p>`
         }
     ];
 
     let currentSpread = 0;
     let isDragging = false;
     let cornerX = 0;
+    let cornerY = 0;
     let canvasW, canvasH;
 
     function updateContent() {
-        document.getElementById('left-content').innerHTML = pages[currentSpread].left;
-        document.getElementById('right-content').innerHTML = pages[currentSpread].right;
-        pNumDisplay.innerText = (currentSpread * 2) + 1;
+        document.getElementById('left-content').innerHTML = spreads[currentSpread].left;
+        document.getElementById('right-content').innerHTML = spreads[currentSpread].right;
+        pNumDisplay.innerText = (currentSpread + 1);
         
-        // Apply cover style specifically if it's spread 0
-        document.getElementById('left-page').style.background = currentSpread === 0 ? 'var(--brand-green)' : 'var(--paper)';
-        document.getElementById('left-page').style.color = currentSpread === 0 ? 'white' : '#333';
+        // Handle Cover Color Change
+        const isCover = currentSpread === 0;
+        document.getElementById('left-page').style.background = isCover ? 'var(--brand-green)' : 'var(--paper)';
+        document.getElementById('left-page').style.color = isCover ? 'white' : '#333';
     }
 
     function init() {
@@ -152,62 +146,86 @@
         canvas.width = canvasW;
         canvas.height = canvasH;
         cornerX = canvasW;
+        cornerY = canvasH;
         updateContent();
         draw();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvasW, canvasH);
-        const curlAmount = canvasW - cornerX;
-        if (curlAmount <= 0) return;
+        
+        // Don't draw if the page is flat
+        if (cornerX >= canvasW - 2 && cornerY >= canvasH - 2) return;
 
         ctx.save();
-        // The Peel Shadow
-        ctx.beginPath();
-        ctx.moveTo(cornerX, 0);
-        ctx.quadraticCurveTo(cornerX - (curlAmount * 0.6), canvasH/2, cornerX, canvasH);
-        ctx.lineTo(canvasW, canvasH);
-        ctx.lineTo(canvasW, 0);
         
-        const grad = ctx.createLinearGradient(cornerX - (curlAmount * 0.2), 0, canvasW, 0);
+        // 1. Define the clipping area for the "back" of the page
+        ctx.beginPath();
+        ctx.moveTo(canvasW, 0); // Anchored Top-Right
+        ctx.lineTo(cornerX, cornerY); // Follows Finger
+        ctx.lineTo(canvasW, canvasH); // Bottom-Right origin
+        ctx.closePath();
+
+        // 2. Draw the Shadow for the fold
+        const shadowDepth = canvasW - cornerX;
+        const grad = ctx.createRadialGradient(cornerX, cornerY, 0, cornerX, cornerY, shadowDepth);
         grad.addColorStop(0, 'rgba(0,0,0,0.4)');
-        grad.addColorStop(0.3, 'rgba(0,0,0,0.1)');
         grad.addColorStop(1, 'rgba(0,0,0,0)');
+        
         ctx.fillStyle = grad;
         ctx.fill();
+        
+        // 3. Draw the "peel" edge line
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
         ctx.restore();
     }
 
-    function handleMove(e) {
+    function handleInteraction(e) {
         if (!isDragging) return;
         const rect = canvas.getBoundingClientRect();
         const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        
         cornerX = Math.max(0, Math.min(canvasW, x));
-        document.getElementById('right-content').style.opacity = cornerX / canvasW;
+        cornerY = Math.max(canvasH * 0.4, Math.min(canvasH, y)); // Limit vertical lifting
+        
+        // Fade the content underneath the peel
+        document.getElementById('right-content').style.opacity = (cornerX / canvasW) + 0.2;
         draw();
     }
 
     canvas.addEventListener('mousedown', () => isDragging = true);
-    canvas.addEventListener('touchstart', () => isDragging = true);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('touchmove', handleMove);
-    window.addEventListener('mouseup', () => {
+    canvas.addEventListener('touchstart', (e) => { isDragging = true; e.preventDefault(); }, {passive: false});
+    
+    window.addEventListener('mousemove', handleInteraction);
+    window.addEventListener('touchmove', handleInteraction, {passive: false});
+    
+    window.addEventListener('mouseup', endFlip);
+    window.addEventListener('touchend', endFlip);
+
+    function endFlip() {
         if (!isDragging) return;
         isDragging = false;
         
-        if (cornerX < canvasW / 2 && currentSpread < pages.length - 1) {
+        // If the user pulled more than 50% of the way, flip the page
+        if (cornerX < canvasW * 0.5 && currentSpread < spreads.length - 1) {
             currentSpread++;
             updateContent();
+        } else if (cornerX > canvasW * 0.8 && currentSpread > 0 && cornerX < canvasW) {
+            // Optional: logic for flipping back could go here
         }
         
-        // Reset peel
+        // Reset the "paper" to flat position
         cornerX = canvasW;
+        cornerY = canvasH;
         document.getElementById('right-content').style.opacity = 1;
         draw();
-    });
+    }
 
     window.onload = init;
-    window.onresize = init;
 </script>
 </body>
 </html>
