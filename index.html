@@ -104,14 +104,15 @@
     const rightImg = document.getElementById('right-img');
     const pNumDisplay = document.getElementById('pnum');
 
+    // Mapped 14 pages into 7 dual-page spreads
     const spreads = [
-        { left: "page1.jpg", right: "page2.jpg" }, 
-        { left: "page3.jpg", right: "page4.jpg" },
-        { left: "page5.jpg", right: "page6.jpg" },
-        { left: "page7.jpg", right: "page8.jpg" },
-        { left: "page9.jpg", right: "page10.jpg" },
-        { left: "page11.jpg", right: "page12.jpg" },
-        { left: "page13.jpg", right: "page14.jpg" }
+        { left: "page1.jpg", right: "page2.jpg" }, // Cover & Intro [cite: 1, 5]
+        { left: "page3.jpg", right: "page4.jpg" }, // Built Properly & Our Approach [cite: 13, 21]
+        { left: "page5.jpg", right: "page6.jpg" }, // Beyond Garden Rooms & Hampton [cite: 36, 42]
+        { left: "page7.jpg", right: "page8.jpg" }, // Chelsea & Kew [cite: 52, 63]
+        { left: "page9.jpg", right: "page10.jpg" }, // Eden & Specs [cite: 72, 82]
+        { left: "page11.jpg", right: "page12.jpg" }, // Model Specs [cite: 85, 116]
+        { left: "page13.jpg", right: "page14.jpg" }  // Eden Layouts [cite: 155, 193]
     ];
 
     let currentSpread = 0;
@@ -137,9 +138,7 @@
             const rollWidth = 60;
             const grad = ctx.createLinearGradient(cornerX - rollWidth, 0, cornerX + rollWidth, 0);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(0.3, 'rgba(0,0,0,0.05)');
             grad.addColorStop(0.5, 'rgba(0,0,0,0.3)');
-            grad.addColorStop(0.7, 'rgba(255,255,255,0.1)');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
             ctx.fillRect(cornerX - rollWidth, 0, (canvasW - cornerX) + rollWidth, canvasH);
@@ -147,7 +146,6 @@
             const rollWidth = 60;
             const grad = ctx.createLinearGradient(cornerX - rollWidth, 0, cornerX + rollWidth, 0);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(0.3, 'rgba(255,255,255,0.1)');
             grad.addColorStop(0.5, 'rgba(0,0,0,0.3)');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
@@ -156,24 +154,25 @@
         ctx.restore();
     }
 
-    canvas.addEventListener('mousedown', (e) => {
+    function start(e) {
         const rect = canvas.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
         isDragging = true;
-        activeSide = (e.clientX - rect.left) > canvasW / 2 ? 'right' : 'left';
-    });
+        activeSide = x > canvasW / 2 ? 'right' : 'left';
+    }
 
-    window.addEventListener('mousemove', (e) => {
+    function move(e) {
         if (!isDragging) return;
         const rect = canvas.getBoundingClientRect();
-        cornerX = e.clientX - rect.left;
+        cornerX = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
         const mid = canvasW / 2;
-        const targetImg = activeSide === 'right' ? rightImg : leftImg;
+        const target = activeSide === 'right' ? rightImg : leftImg;
         let ratio = activeSide === 'right' ? (cornerX - mid) / mid : (mid - cornerX) / mid;
-        targetImg.style.opacity = Math.max(0, ratio);
+        target.style.opacity = Math.max(0, ratio);
         draw();
-    });
+    }
 
-    window.addEventListener('mouseup', () => {
+    function stop() {
         if (!isDragging) return;
         const mid = canvasW / 2;
         if (activeSide === 'right' && cornerX < mid && currentSpread < spreads.length - 1) currentSpread++;
@@ -184,7 +183,14 @@
         rightImg.style.opacity = 1;
         updateContent();
         ctx.clearRect(0, 0, canvasW, canvasH);
-    });
+    }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('touchstart', start);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move);
+    window.addEventListener('mouseup', stop);
+    window.addEventListener('touchend', stop);
 
     function updateContent() {
         leftImg.src = spreads[currentSpread].left;
