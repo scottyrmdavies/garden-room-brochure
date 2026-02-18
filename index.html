@@ -1,148 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garden Room Brochure Mockup - Bi-Directional</title>
-    <style>
-        :root {
-            --book-height: 550px;
-            --book-width: 850px;
-            --paper: #fffef0;
-            --brand-green: #2d5016;
-        }
-
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #1a1a1a;
-            font-family: 'Georgia', serif;
-            color: #333;
-        }
-
-        .book-container {
-            position: relative;
-            width: var(--book-width);
-            height: var(--book-height);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            background: #2c1810;
-        }
-
-        .book {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .side {
-            width: 50%;
-            height: 100%;
-            background: var(--paper);
-            position: relative;
-        }
-
-        .page-content {
-            padding: 50px;
-            height: 100%;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            opacity: 1;
-            transition: opacity 0.3s;
-        }
-
-        .cover { background: var(--brand-green); color: white; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;}
-        .cover h1 { font-size: 3rem; margin-bottom: 10px; }
-        .price { color: #4a7c2c; font-weight: bold; font-size: 1.4rem; }
-        ul { text-align: left; line-height: 1.8; }
-        
-        /* Canvas now covers the entire width of the book */
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 100;
-            cursor: grab;
-            touch-action: none;
-        }
-
-        .spine {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background: rgba(0,0,0,0.2);
-            z-index: 50;
-        }
-
-        .controls { color: white; margin-top: 20px; font-size: 0.9rem; opacity: 0.6; }
-    </style>
-</head>
-<body>
-
-<div class="book-container">
-    <div class="book">
-        <div class="spine"></div>
-        
-        <div class="side" id="left-page">
-            <div class="page-content" id="left-content"></div>
-        </div>
-
-        <div class="side" id="right-page">
-            <div class="page-content" id="right-content"></div>
-        </div>
-
-        <canvas id="pageCanvas"></canvas>
-    </div>
-</div>
-
-<div class="controls">Drag either side to flip • Spread <span id="pnum">1</span> of 3</div>
-
-<script>
-    const canvas = document.getElementById('pageCanvas');
+const canvas = document.getElementById('pageCanvas');
     const ctx = canvas.getContext('2d');
     const pNumDisplay = document.getElementById('pnum');
     
-    const pages = [
-        { 
-            left: `<div class="cover"><h1>Garden Rooms</h1><p>2026 Collection</p><hr style="width:40px; border-color:white"></div>`,
-            right: `<h2>Your New Space</h2><p>Hand-crafted luxury garden rooms designed for year-round comfort.</p>`
-        },
-        { 
-            left: `<h3>The Classic</h3><p class="price">From £12,500</p><ul><li>3m x 3m Insulated</li><li>Double Glazing</li></ul>`,
-            right: `<h3>The Executive</h3><p class="price">From £18,900</p><ul><li>4m x 4m Premium</li><li>Bi-fold Doors</li></ul>`
-        },
-        { 
-            left: `<h3>Our Process</h3><p>Consultation, Planning, Installation.</p>`,
-            right: `<h3>Get in Touch</h3><p>📞 01234 567890<br>hello@gardenrooms.co.uk</p>`
-        }
+    // Spread mapping for 14 pages
+    const spreads = [
+        { left: "page1.jpg", right: "page2.jpg" }, 
+        { left: "page3.jpg", right: "page4.jpg" },
+        { left: "page5.jpg", right: "page6.jpg" },
+        { left: "page7.jpg", right: "page8.jpg" },
+        { left: "page9.jpg", right: "page10.jpg" },
+        { left: "page11.jpg", right: "page12.jpg" },
+        { left: "page13.jpg", right: "page14.jpg" }
     ];
 
     let currentSpread = 0;
     let isDragging = false;
-    let activeSide = null; // Track if we grabbed 'left' or 'right'
+    let activeSide = null;
     let cornerX = 0;
     let canvasW, canvasH;
-
-    function updateContent() {
-        document.getElementById('left-content').innerHTML = pages[currentSpread].left;
-        document.getElementById('right-content').innerHTML = pages[currentSpread].right;
-        pNumDisplay.innerText = (currentSpread + 1);
-        
-        const isCover = currentSpread === 0;
-        document.getElementById('left-page').style.background = isCover ? 'var(--brand-green)' : 'var(--paper)';
-        document.getElementById('left-page').style.color = isCover ? 'white' : '#333';
-    }
 
     function init() {
         canvasW = canvas.offsetWidth;
@@ -156,92 +31,75 @@
         ctx.clearRect(0, 0, canvasW, canvasH);
         if (!isDragging) return;
 
-        ctx.save();
         const mid = canvasW / 2;
-        
+        ctx.save();
+
         if (activeSide === 'right') {
-            // Forward Flip
-            const curlAmount = canvasW - cornerX;
-            ctx.beginPath();
-            ctx.moveTo(cornerX, 0);
-            ctx.quadraticCurveTo(cornerX - (curlAmount * 0.6), canvasH/2, cornerX, canvasH);
-            ctx.lineTo(canvasW, canvasH);
-            ctx.lineTo(canvasW, 0);
-            
-            const grad = ctx.createLinearGradient(cornerX - (curlAmount * 0.2), 0, canvasW, 0);
-            grad.addColorStop(0, 'rgba(0,0,0,0.4)');
-            grad.addColorStop(0.3, 'rgba(0,0,0,0.1)');
+            // Forward Roll: Right to Left
+            const rollWidth = (canvasW - cornerX) / 2;
+            const rollX = cornerX + rollWidth;
+
+            // This creates the "Round" Shadow Cylinder
+            const grad = ctx.createLinearGradient(cornerX - 20, 0, cornerX + (rollWidth * 2), 0);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(0.4, 'rgba(0,0,0,0.25)'); // Peak of the curve
             grad.addColorStop(1, 'rgba(0,0,0,0)');
+            
             ctx.fillStyle = grad;
+            ctx.fillRect(cornerX - 40, 0, (canvasW - cornerX) + 40, canvasH);
         } else {
-            // Backward Flip
-            const curlAmount = cornerX;
-            ctx.beginPath();
-            ctx.moveTo(cornerX, 0);
-            ctx.quadraticCurveTo(cornerX + (curlAmount * 0.6), canvasH/2, cornerX, canvasH);
-            ctx.lineTo(0, canvasH);
-            ctx.lineTo(0, 0);
-            
-            const grad = ctx.createLinearGradient(cornerX + (curlAmount * 0.2), 0, 0, 0);
-            grad.addColorStop(0, 'rgba(0,0,0,0.4)');
-            grad.addColorStop(0.3, 'rgba(0,0,0,0.1)');
+            // Backward Roll: Left to Right
+            const rollWidth = cornerX / 2;
+            const grad = ctx.createLinearGradient(0, 0, cornerX + 40, 0);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(0.6, 'rgba(0,0,0,0.25)');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
+            
             ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, cornerX + 40, canvasH);
         }
-        
-        ctx.fill();
         ctx.restore();
     }
 
-    function startDragging(e) {
+    canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const x = e.clientX - rect.left;
         isDragging = true;
         activeSide = x > canvasW / 2 ? 'right' : 'left';
-    }
+    });
 
-    function handleMove(e) {
+    window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         const rect = canvas.getBoundingClientRect();
-        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-        cornerX = Math.max(0, Math.min(canvasW, x));
+        cornerX = e.clientX - rect.left;
         
-        // Fade only the side being peeled
-        if (activeSide === 'right') {
-            document.getElementById('right-content').style.opacity = (cornerX - (canvasW/2)) / (canvasW/2);
-        } else {
-            document.getElementById('left-content').style.opacity = ((canvasW/2) - cornerX) / (canvasW/2);
-        }
+        const mid = canvasW / 2;
+        const targetImg = activeSide === 'right' ? document.getElementById('right-img') : document.getElementById('left-img');
+        
+        // Calculate the roll reveal
+        let ratio = activeSide === 'right' ? (cornerX - mid) / mid : (mid - cornerX) / mid;
+        targetImg.style.opacity = Math.max(0, ratio);
         
         draw();
-    }
+    });
 
-    function stopDragging() {
+    window.addEventListener('mouseup', () => {
         if (!isDragging) return;
         const mid = canvasW / 2;
-
-        if (activeSide === 'right' && cornerX < mid && currentSpread < pages.length - 1) {
-            currentSpread++;
-        } else if (activeSide === 'left' && cornerX > mid && currentSpread > 0) {
-            currentSpread--;
-        }
+        if (activeSide === 'right' && cornerX < mid && currentSpread < spreads.length - 1) currentSpread++;
+        else if (activeSide === 'left' && cornerX > mid && currentSpread > 0) currentSpread--;
 
         isDragging = false;
-        document.getElementById('left-content').style.opacity = 1;
-        document.getElementById('right-content').style.opacity = 1;
+        document.getElementById('left-img').style.opacity = 1;
+        document.getElementById('right-img').style.opacity = 1;
         updateContent();
         ctx.clearRect(0, 0, canvasW, canvasH);
+    });
+
+    function updateContent() {
+        document.getElementById('left-img').src = spreads[currentSpread].left;
+        document.getElementById('right-img').src = spreads[currentSpread].right;
+        pNumDisplay.innerText = (currentSpread + 1) + " of " + spreads.length;
     }
 
-    canvas.addEventListener('mousedown', startDragging);
-    canvas.addEventListener('touchstart', startDragging);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('touchmove', handleMove);
-    window.addEventListener('mouseup', stopDragging);
-    window.addEventListener('touchend', stopDragging);
-
     window.onload = init;
-    window.onresize = init;
-</script>
-</body>
-</html>
